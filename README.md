@@ -1,4 +1,4 @@
-# VCT-ARTEMIS
+<img width="992" height="158" alt="image" src="https://github.com/user-attachments/assets/0378493d-e448-4d5e-8fed-fabcce92acc0" />
 
 **A Valorant esports analyst that builds lineups, scores team comps, and explains the picks — powered by live vlr.gg stats and a co-play chemistry model.**
 

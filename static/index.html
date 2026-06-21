@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Artemis · VCT Analyst</title>
+  <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
+  <link href="https://fonts.cdnfonts.com/css/valorant" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --font-valorant: "VALORANT", "Barlow Condensed", sans-serif;
+      --bg: #0a0e12;
+      --surface: #111923;
+      --border: #1e2a36;
+      --text: #ece8e1;
+      --muted: #768792;
+      --accent: #ff4655;
+      --duelist: #ff4655;
+      --initiator: #ffc84b;
+      --controller: #7b61ff;
+      --sentinel: #00d8d8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255,70,85,0.12), transparent),
+        linear-gradient(180deg, #0a0e12 0%, #0f1419 100%);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      position: relative;
+      z-index: 20;
+    }
+    .header-spacer { flex: 1; }
+    .settings-wrap { position: relative; }
+    .settings-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .settings-btn:hover { border-color: rgba(255,255,255,0.15); background: #1a2430; }
+    .settings-btn.active { border-color: rgba(255,70,85,0.45); color: var(--accent); }
+    .settings-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 260px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    }
+    .settings-menu.hidden { display: none; }
+    .settings-menu h3 {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+    .setting-row:last-child { margin-bottom: 0; }
+    .setting-row .setting-label {
+      font-size: 0.82rem;
+      color: var(--text);
+      flex: 1;
+    }
+    .setting-row select {
+      background: #0d1218;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.78rem;
+      font-family: inherit;
+      min-width: 88px;
+      max-width: 120px;
+    }
+    .settings-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.75rem;
+      line-height: 1.4;
+      border-top: 1px solid var(--border);
+      padding-top: 0.65rem;
+    }
+    .logo {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
+    }
+    .home-link {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: inherit;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 0;
+      font: inherit;
+      transition: opacity 0.15s;
+    }
+    .home-link:hover { opacity: 0.85; }
+    .home-link:focus-visible {
+      outline: 2px solid rgba(255, 70, 85, 0.55);
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+    header h1 {
+      font-family: var(--font-valorant);
+      font-size: 1.5rem;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    header span { display: none; }
+
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      position: relative;
+    }
+
+    #empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem 1rem;
+      text-align: center;
+    }
+    #empty-state.hidden { display: none; }
+
+    .welcome-logo {
+      width: 44px; height: 44px;
+      background: var(--accent);
+      clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
+      margin-bottom: 1.25rem;
+      opacity: 0.9;
+    }
+    .welcome-title {
+      font-family: var(--font-valorant);
+      font-size: 2.75rem;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 2rem;
+    }
+
+    .suggestions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 520px;
+    }
+    .chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.55rem 1rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .chip:hover { background: #1a2430; border-color: rgba(255,255,255,0.12); }
+
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem 1.5rem 1rem;
+      display: none;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    #chat.active { display: flex; }
+
+    .message {
+      max-width: 100%;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    .message.user {
+      align-self: flex-end;
+      max-width: 520px;
+      background: #1a2430;
+      border: 1px solid var(--border);
+      border-radius: 12px 12px 4px 12px;
+      padding: 0.75rem 1rem;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .message.bot { align-self: flex-start; width: 100%; max-width: 960px; }
+
+    .bot-label {
+      font-family: var(--font-valorant);
+      font-size: 0.85rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .summary {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #c8d0d8;
+      margin-bottom: 1rem;
+      max-width: 680px;
+    }
+
+    .team-score {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem 1.25rem;
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 70, 85, 0.06);
+      border: 1px solid rgba(255, 70, 85, 0.2);
+      border-radius: 8px;
+      max-width: 680px;
+    }
+    .score-badge {
+      font-family: var(--font-valorant);
+      font-size: 1.35rem;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+    }
+    .score-chem {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .score-highlights {
+      list-style: none;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .score-highlights li::before { content: "· "; color: var(--accent); }
+
+    .player-map {
+      margin: 1rem 0;
+      max-width: 680px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 0.85rem 0.65rem;
+    }
+    .player-map h4 {
+      font-family: var(--font-valorant);
+      font-size: 0.85rem;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 0.2rem;
+    }
+    .player-map .map-subtitle {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-bottom: 0.55rem;
+    }
+    .player-map canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+      background: #0a0e12;
+      cursor: grab;
+    }
+    .player-map canvas.dragging { cursor: grabbing; }
+    .map-viewport {
+      overflow: hidden;
+      border-radius: 8px;
+      touch-action: none;
+    }
+    .map-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .map-legend span { display: flex; align-items: center; gap: 0.35rem; }
+    .map-legend .dot-sm {
+      width: 8px; height: 8px; border-radius: 50%; background: #5a6478;
+    }
+    .map-legend .dot-lg {
+      width: 11px; height: 11px; border-radius: 50%; background: var(--accent);
+      border: 1px solid #fff;
+    }
+    .map-legend .line-solid {
+      width: 16px; height: 3px; background: var(--accent); border-radius: 2px;
+    }
+    .map-legend .line-teal {
+      width: 16px; height: 2px; background: #3ecfb2; border-radius: 2px;
+    }
+    .map-legend .line-dash {
+      width: 16px; height: 0; border-top: 2px dashed rgba(255,70,85,0.35);
+    }
+    .player-map .map-note {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.45rem;
+      line-height: 1.4;
+    }
+
+    /* ── Roster row ── */
+    .roster {
+      display: flex;
+      gap: 0.65rem;
+      overflow-x: auto;
+      padding-bottom: 0.25rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .player-card {
+      flex: 0 0 168px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .player-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    .card-hero {
+      position: relative;
+      height: 130px;
+      overflow: hidden;
+      background: #1a2030;
+    }
+    .card-hero img.player-headshot {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      pointer-events: none;
+    }
+    .card-hero .role-stripe {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .card-hero .role-badge {
+      position: absolute;
+      top: 8px; left: 8px;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+    }
+    .card-hero .team-tag {
+      position: absolute;
+      bottom: 8px; left: 10px;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.7);
+      text-transform: uppercase;
+    }
+
+    .card-body {
+      padding: 0.65rem 0.75rem 0.5rem;
+      flex: 1;
+    }
+    .card-body .handle {
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1.1;
+      text-transform: uppercase;
+    }
+
+    .agent-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 0.45rem;
+    }
+    .agent-row img {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: #0a0e12;
+      object-fit: cover;
+    }
+
+    .stat-row {
+      display: flex;
+      gap: 0;
+      border-top: 1px solid var(--border);
+      background: #0d1218;
+    }
+    .stat {
+      flex: 1;
+      text-align: center;
+      padding: 0.4rem 0.2rem;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat .val {
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .stat .lbl {
+      font-size: 0.58rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .card-note {
+      font-size: 0.72rem;
+      line-height: 1.35;
+      color: var(--muted);
+      padding: 0.45rem 0.75rem 0.6rem;
+      border-top: 1px solid var(--border);
+      font-style: italic;
+    }
+
+    .text-only {
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 0.85rem 1rem;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      max-width: 680px;
+    }
+
+    .typing {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .input-area {
+      padding: 0.85rem 1.5rem 1.25rem;
+      background: rgba(10,14,18,0.9);
+    }
+    .input-area.centered form {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    form {
+      display: flex;
+      gap: 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.45rem 0.45rem 0.45rem 1rem;
+      background: var(--surface);
+    }
+    form:focus-within { border-color: rgba(255,255,255,0.15); }
+    input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      padding: 0.5rem 0;
+      font-size: 0.92rem;
+      outline: none;
+      font-family: inherit;
+    }
+    button[type=submit] {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-family: "Inter", sans-serif;
+      font-weight: 500;
+      font-size: 0.85rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    button[type=submit]:hover { background: #e03e4d; }
+    button[type=submit]:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    @media (max-width: 640px) {
+      .player-card { flex: 0 0 148px; }
+      .card-hero { height: 110px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <button type="button" class="home-link" id="home-btn" aria-label="Back to home">
+      <div class="logo"></div>
+      <h1>Artemis</h1>
+    </button>
+    <div class="header-spacer"></div>
+    <div class="settings-wrap">
+      <button type="button" class="settings-btn" id="settings-btn" aria-expanded="false">
+        <span aria-hidden="true">⚙</span> Builder
+      </button>
+      <div class="settings-menu hidden" id="settings-menu">
+        <h3>Team builder</h3>
+        <div class="setting-row">
+          <label class="setting-label" for="sel-chemistry">Co-play chemistry</label>
+          <select id="sel-chemistry">
+            <option value="stats">Off</option>
+            <option value="chemistry">On</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" for="sel-mode">Build mode</label>
+          <select id="sel-mode">
+            <option value="auto">Auto</option>
+            <option value="optimal">Balanced</option>
+            <option value="goated">Superteam</option>
+            <option value="troll">Troll</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" for="sel-league">League pool</label>
+          <select id="sel-league">
+            <option value="auto">Auto</option>
+            <option value="vct">VCT (all)</option>
+            <option value="americas">Americas</option>
+            <option value="emea">EMEA</option>
+            <option value="pacific">Pacific</option>
+            <option value="gc">Game Changers</option>
+          </select>
+        </div>
+        <p class="settings-hint">Applies to team builds. Auto reads your message; these settings override when changed.</p>
+      </div>
+    </div>
+  </header>
+
+  <div id="main">
+    <div id="empty-state">
+      <div class="welcome-logo"></div>
+      <div class="welcome-title">Artemis</div>
+      <div class="suggestions">
+        <button class="chip" type="button" data-prompt="Build the best current VCT Americas team with balanced roles">Build best Americas team</button>
+        <button class="chip" type="button" data-prompt="Build the best current VCT EMEA team with balanced roles">Build best EMEA team</button>
+        <button class="chip" type="button" data-prompt="Build the most stacked all-star VCT superteam from current stats">Build all-star superteam</button>
+        <button class="chip" type="button" data-prompt="Build an optimal Game Changers lineup with balanced roles">Build Game Changers team</button>
+      </div>
+    </div>
+
+    <div id="chat"></div>
+
+    <div class="input-area centered" id="input-area">
+      <form id="form">
+        <input id="input" type="text" placeholder="Message Artemis…" autocomplete="off" />
+        <button type="submit" id="send">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const VLR_AGENT = (a) => `/img/agents/${encodeURIComponent(a)}.png`;
+    const chat = document.getElementById("chat");
+    const emptyState = document.getElementById("empty-state");
+    const inputArea = document.getElementById("input-area");
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+    const sendBtn = document.getElementById("send");
+    const history = [];
+    const settingsBtn = document.getElementById("settings-btn");
+    const settingsMenu = document.getElementById("settings-menu");
+    const selChemistry = document.getElementById("sel-chemistry");
+    const selMode = document.getElementById("sel-mode");
+    const selLeague = document.getElementById("sel-league");
+    const homeBtn = document.getElementById("home-btn");
+
+    const SETTINGS_KEY = "artemis-builder-settings";
+
+    function loadSettings() {
+      try {
+        const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+        selChemistry.value = s.chemistry ? "chemistry" : "stats";
+        selMode.value = s.mode || "auto";
+        selLeague.value = s.league || "auto";
+      } catch (_) {}
+      updateSettingsBtn();
+    }
+
+    function saveSettings() {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+        chemistry: selChemistry.value === "chemistry",
+        mode: selMode.value,
+        league: selLeague.value,
+      }));
+      updateSettingsBtn();
+    }
+
+    function getSettings() {
+      return {
+        buildStyle: selChemistry.value,
+        teamMode: selMode.value,
+        league: selLeague.value,
+      };
+    }
+
+    function updateSettingsBtn() {
+      const active = selChemistry.value === "chemistry" || selMode.value !== "auto" || selLeague.value !== "auto";
+      settingsBtn.classList.toggle("active", active);
+    }
+
+    settingsBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      const open = settingsMenu.classList.toggle("hidden");
+      settingsBtn.setAttribute("aria-expanded", String(!open));
+    });
+    document.addEventListener("click", () => {
+      settingsMenu.classList.add("hidden");
+      settingsBtn.setAttribute("aria-expanded", "false");
+    });
+    settingsMenu.addEventListener("click", e => e.stopPropagation());
+    [selChemistry, selMode, selLeague].forEach(el => el.addEventListener("change", saveSettings));
+    loadSettings();
+
+    function startChat() {
+      if (!chat.classList.contains("active")) {
+        emptyState.classList.add("hidden");
+        chat.classList.add("active");
+        inputArea.classList.remove("centered");
+      }
+    }
+
+    function goHome() {
+      chat.innerHTML = "";
+      chat.classList.remove("active");
+      emptyState.classList.remove("hidden");
+      inputArea.classList.add("centered");
+      input.value = "";
+      sendBtn.disabled = false;
+      history.length = 0;
+      settingsMenu.classList.add("hidden");
+      settingsBtn.setAttribute("aria-expanded", "false");
+      document.getElementById("typing")?.remove();
+      input.focus();
+    }
+
+    homeBtn.addEventListener("click", goHome);
+
+    function buildPlayerCard(p) {
+      const card = document.createElement("div");
+      card.className = "player-card";
+
+      const hero = document.createElement("div");
+      hero.className = "card-hero";
+      hero.style.background = `linear-gradient(135deg, ${p.roleColor}22 0%, #111923 60%)`;
+
+      const stripe = document.createElement("div");
+      stripe.className = "role-stripe";
+      stripe.style.background = p.roleColor;
+      hero.appendChild(stripe);
+
+      const badge = document.createElement("div");
+      badge.className = "role-badge";
+      badge.style.color = p.roleColor;
+      badge.textContent = p.role;
+      hero.appendChild(badge);
+
+      if (p.photoUrl) {
+        const headshot = document.createElement("img");
+        headshot.className = "player-headshot";
+        headshot.src = p.photoUrl;
+        headshot.alt = p.name;
+        headshot.referrerPolicy = "no-referrer";
+        headshot.onerror = () => { headshot.style.display = "none"; };
+        hero.appendChild(headshot);
+      }
+
+      const teamTag = document.createElement("div");
+      teamTag.className = "team-tag";
+      teamTag.textContent = p.team || "—";
+      hero.appendChild(teamTag);
+
+      const body = document.createElement("div");
+      body.className = "card-body";
+      const handle = document.createElement("div");
+      handle.className = "handle";
+      handle.textContent = p.name;
+      body.appendChild(handle);
+
+      const agentRow = document.createElement("div");
+      agentRow.className = "agent-row";
+      (p.agents || []).slice(0, 3).forEach(a => {
+        const img = document.createElement("img");
+        img.src = VLR_AGENT(a);
+        img.alt = a;
+        img.title = a;
+        img.referrerPolicy = "no-referrer";
+        agentRow.appendChild(img);
+      });
+      body.appendChild(agentRow);
+
+      const stats = document.createElement("div");
+      stats.className = "stat-row";
+      [
+        { val: p.rating, lbl: "Rtg" },
+        { val: p.acs, lbl: "ACS" },
+        { val: p.kd, lbl: "K:D" },
+      ].forEach(s => {
+        const el = document.createElement("div");
+        el.className = "stat";
+        el.innerHTML = `<div class="val">${s.val}</div><div class="lbl">${s.lbl}</div>`;
+        stats.appendChild(el);
+      });
+
+      card.appendChild(hero);
+      card.appendChild(body);
+      card.appendChild(stats);
+
+      if (p.note) {
+        const note = document.createElement("div");
+        note.className = "card-note";
+        note.textContent = p.note;
+        card.appendChild(note);
+      }
+
+      return card;
+    }
+
+    function renderChemistryPlot(plot, team) {
+      const wrap = document.createElement("div");
+      wrap.className = "player-map";
+      const chemistryMode = !!plot.chemistryMode;
+
+      const title = document.createElement("h4");
+      title.textContent = plot.title || "Player fit map";
+      wrap.appendChild(title);
+
+      if (plot.subtitle) {
+        const sub = document.createElement("p");
+        sub.className = "map-subtitle";
+        sub.textContent = plot.subtitle;
+        wrap.appendChild(sub);
+      }
+
+      const legend = document.createElement("div");
+      legend.className = "map-legend";
+      legend.innerHTML = chemistryMode
+        ? `<span><i class="dot-sm"></i> Other VCT pros</span>
+           <span><i class="dot-lg"></i> Your lineup</span>
+           <span><i class="line-solid"></i> Shared maps</span>
+           <span><i class="line-teal"></i> Same comms</span>
+           <span><i class="line-dash"></i> No link</span>`
+        : `<span><i class="dot-sm"></i> Other VCT pros</span>
+           <span><i class="dot-lg"></i> Your lineup</span>
+           <span><i class="line-solid"></i> Shared maps</span>
+           <span><i class="line-dash"></i> No link</span>`;
+      wrap.appendChild(legend);
+
+      const viewport = document.createElement("div");
+      viewport.className = "map-viewport";
+      const canvas = document.createElement("canvas");
+      canvas.width = 680;
+      canvas.height = 380;
+      viewport.appendChild(canvas);
+      wrap.appendChild(viewport);
+
+      if (plot.note) {
+        const note = document.createElement("p");
+        note.className = "map-note";
+        note.textContent = plot.note;
+        wrap.appendChild(note);
+      }
+
+      const pts = plot.points || [];
+      if (!pts.length) return wrap;
+
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width, H = canvas.height;
+      const padLeft = 58, padRight = 22, padTop = 22, padBottom = 52;
+      const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+      let minX = Math.min(...xs), maxX = Math.max(...xs);
+      let minY = Math.min(...ys), maxY = Math.max(...ys);
+      const mx = (maxX - minX || 1) * 0.12, my = (maxY - minY || 1) * 0.12;
+      minX -= mx; maxX += mx; minY -= my; maxY += my;
+
+      const plotW = W - padLeft - padRight;
+      const plotH = H - padTop - padBottom;
+      const baseX = v => padLeft + ((v - minX) / (maxX - minX)) * plotW;
+      const baseY = v => H - padBottom - ((v - minY) / (maxY - minY)) * plotH;
+
+      let panX = 0, panY = 0, scale = 1;
+      let dragging = false, lastX = 0, lastY = 0;
+
+      const byId = Object.fromEntries(pts.map(p => [p.id, p]));
+      const roleColor = Object.fromEntries((team || []).map(p => [p.playerId, p.roleColor]));
+      const clusterColors = ["#4a5568", "#5c4d6a", "#4d665c", "#665c4d", "#4d5c66"];
+      const xLabel = plot.axisLabels?.x || "Stat profile";
+      const yLabel = plot.axisLabels?.y || "Playstyle fit";
+
+      const toCanvas = (wx, wy) => ({
+        x: baseX(wx) * scale + panX,
+        y: baseY(wy) * scale + panY,
+      });
+
+      function drawAxisLabel(text, x, y, rotate = 0) {
+        ctx.save();
+        ctx.font = "600 11px Barlow Condensed, sans-serif";
+        ctx.fillStyle = "#9aa8b3";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.translate(x, y);
+        if (rotate) ctx.rotate(rotate);
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+      }
+
+      function drawPlayerLabel(text, x, y) {
+        ctx.font = "600 11px Barlow Condensed, sans-serif";
+        const tw = ctx.measureText(text).width;
+        let lx = x + 12, ly = y + 4;
+        if (lx + tw > W - 6) lx = x - tw - 12;
+        if (ly < 14) ly = y + 16;
+        if (ly > H - 6) ly = y - 8;
+        ctx.fillStyle = "rgba(10,14,18,0.8)";
+        ctx.fillRect(lx - 3, ly - 11, tw + 6, 14);
+        ctx.fillStyle = "#ece8e1";
+        ctx.fillText(text, lx, ly);
+      }
+
+      function drawAxes() {
+        const x0 = padLeft * scale + panX;
+        const y0 = (H - padBottom) * scale + panY;
+        const x1 = (W - padRight) * scale + panX;
+        const y1 = padTop * scale + panY;
+
+        ctx.strokeStyle = "rgba(120,135,146,0.35)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y0);
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x0, y1);
+        ctx.stroke();
+
+        drawAxisLabel(`→ ${xLabel}`, (padLeft + plotW / 2) * scale + panX, H - 18);
+        drawAxisLabel(`↑ ${yLabel}`, 18, (padTop + plotH / 2) * scale + panY, -Math.PI / 2);
+
+        if (plot.varianceExplainedPct) {
+          ctx.font = "500 10px Inter, sans-serif";
+          ctx.fillStyle = "#5a6478";
+          ctx.textAlign = "right";
+          ctx.fillText(
+            `Map covers ~${plot.varianceExplainedPct}% of player differences`,
+            W - 8,
+            14
+          );
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        drawAxes();
+
+        (plot.edges || []).forEach(e => {
+          const a = byId[e.a], b = byId[e.b];
+          if (!a || !b) return;
+          const pa = toCanvas(a.x, a.y), pb = toCanvas(b.x, b.y);
+          const linkType = e.linkType || (e.maps > 0 ? "maps" : "none");
+          ctx.beginPath();
+          ctx.moveTo(pa.x, pa.y);
+          ctx.lineTo(pb.x, pb.y);
+
+          if (linkType === "maps" || linkType === "maps_lang") {
+            ctx.strokeStyle = `rgba(255,70,85,${0.5 + (e.strength || e.synergy || 0) * 0.4})`;
+            ctx.lineWidth = 1.5 + Math.min(e.maps || 0, 15) / 4;
+            ctx.setLineDash([]);
+          } else if (linkType === "language") {
+            ctx.strokeStyle = "rgba(62,207,178,0.65)";
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([]);
+          } else if (linkType === "org") {
+            ctx.strokeStyle = "rgba(120,135,146,0.5)";
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 4]);
+          } else {
+            ctx.strokeStyle = "rgba(255,70,85,0.15)";
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+          }
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          if (e.maps > 0) {
+            const mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2;
+            ctx.font = "9px Inter, sans-serif";
+            ctx.fillStyle = "#768792";
+            ctx.fillText(`${e.maps} maps`, mx + 2, my - 2);
+          }
+        });
+
+        pts.filter(p => !p.selected).forEach(p => {
+          const { x, y } = toCanvas(p.x, p.y);
+          ctx.beginPath();
+          ctx.arc(x, y, 3 * scale, 0, Math.PI * 2);
+          ctx.fillStyle = clusterColors[p.cluster % clusterColors.length];
+          ctx.globalAlpha = 0.55;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        });
+
+        pts.filter(p => p.selected).forEach(p => {
+          const { x, y } = toCanvas(p.x, p.y);
+          const r = 9 * Math.max(scale, 0.85);
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = roleColor[p.id] || "#ff4655";
+          ctx.fill();
+          ctx.strokeStyle = "#fff";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          const bits = [p.name, p.team ? `(${p.team})` : ""].filter(Boolean).join(" ");
+          drawPlayerLabel(bits, x, y);
+        });
+      }
+
+      canvas.addEventListener("mousedown", e => {
+        dragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        canvas.classList.add("dragging");
+      });
+      window.addEventListener("mousemove", e => {
+        if (!dragging) return;
+        panX += e.clientX - lastX;
+        panY += e.clientY - lastY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        draw();
+      });
+      window.addEventListener("mouseup", () => {
+        dragging = false;
+        canvas.classList.remove("dragging");
+      });
+      canvas.addEventListener("wheel", e => {
+        e.preventDefault();
+        const factor = e.deltaY > 0 ? 0.92 : 1.08;
+        scale = Math.min(2.5, Math.max(0.5, scale * factor));
+        draw();
+      }, { passive: false });
+
+      draw();
+      return wrap;
+    }
+
+    function addMessage(text, role, team, evaluation, chemistryPlot) {
+      const wrap = document.createElement("div");
+      wrap.className = `message ${role}`;
+
+      if (role === "bot") {
+        const label = document.createElement("div");
+        label.className = "bot-label";
+        label.textContent = "Artemis";
+        wrap.appendChild(label);
+      }
+
+      if (team && team.length) {
+        if (text) {
+          const summary = document.createElement("div");
+          summary.className = "summary";
+          summary.textContent = text;
+          wrap.appendChild(summary);
+        }
+        if (evaluation) {
+          const block = document.createElement("div");
+          block.className = "team-score";
+          const badge = document.createElement("div");
+          badge.className = "score-badge";
+          badge.textContent = `${evaluation.overall}/100`;
+          block.appendChild(badge);
+          if (evaluation.chemistry != null) {
+            const chem = document.createElement("div");
+            chem.className = "score-chem";
+            chem.textContent = `Chemistry ${evaluation.chemistry}/100${evaluation.buildStyle === "chemistry" ? " · co-play weighted" : ""}`;
+            block.appendChild(chem);
+          }
+          const ul = document.createElement("ul");
+          ul.className = "score-highlights";
+          (evaluation.highlights || []).forEach(h => {
+            const li = document.createElement("li");
+            li.textContent = h;
+            ul.appendChild(li);
+          });
+          block.appendChild(ul);
+          wrap.appendChild(block);
+        }
+        const roster = document.createElement("div");
+        roster.className = "roster";
+        team.forEach(p => roster.appendChild(buildPlayerCard(p)));
+        wrap.appendChild(roster);
+        if (chemistryPlot) {
+          wrap.appendChild(renderChemistryPlot(chemistryPlot, team));
+        }
+      } else {
+        const body = document.createElement("div");
+        body.className = role === "user" ? "" : "text-only";
+        body.textContent = text;
+        wrap.appendChild(body);
+      }
+
+      chat.appendChild(wrap);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function addTyping() {
+      const div = document.createElement("div");
+      div.className = "typing";
+      div.id = "typing";
+      div.textContent = "Thinking…";
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function submit(prompt) {
+      if (!prompt.trim()) return;
+      startChat();
+      addMessage(prompt, "user");
+      history.push({ position: "right_bubble", message: prompt });
+      input.value = "";
+      sendBtn.disabled = true;
+      addTyping();
+
+      try {
+        const res = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt, chatHistory: JSON.stringify(history), settings: getSettings() }),
+        });
+        const data = await res.json();
+        document.getElementById("typing")?.remove();
+
+        if (data.error) {
+          addMessage(`Error: ${data.error}`, "bot");
+        } else {
+          addMessage(data.result, "bot", data.team, data.evaluation, data.chemistryPlot);
+          history.push({ position: "left_bubble", message: data.result });
+        }
+      } catch (err) {
+        document.getElementById("typing")?.remove();
+        addMessage(`Network error: ${err.message}`, "bot");
+      }
+      sendBtn.disabled = false;
+      input.focus();
+    }
+
+    form.addEventListener("submit", e => { e.preventDefault(); submit(input.value); });
+    document.querySelectorAll(".chip").forEach(c =>
+      c.addEventListener("click", () => submit(c.dataset.prompt || c.textContent))
+    );
+    input.focus();
+  </script>
+</body>
+</html>

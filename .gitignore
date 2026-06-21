@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Secrets & local env
+.env
+
+# Generated / cached data
+chroma_db/
+player-data/photo_cache/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Legacy project artifacts (removed from tree)
+vct-international/
+rag/
+tmp/

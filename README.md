@@ -1,8 +1,8 @@
-<img width="1034" height="149" alt="image" src="https://github.com/user-attachments/assets/b15391fb-4c99-4d70-8bff-582d901d6ae9" />
+# VCT-ARTEMIS
 
 **A Valorant esports analyst that builds lineups, scores team comps, and explains the picks — powered by live vlr.gg stats and a co-play chemistry model.**
 
-Ask it to draft a superteam, rate PRX's roster, find who plays best with f0rsakeN, or chat about the VCT meta. Artemis combines a deterministic stats engine with RAG over scraped pro data and GPT-4o-mini for natural-language answers.
+Ask it to draft a superteam, rate PRX's roster, find who plays best with f0rsakeN, or chat about the VCT meta. Artemis combines a deterministic stats engine with RAG over scraped pro data and OpenAI for natural-language answers.
 
 ---
 
